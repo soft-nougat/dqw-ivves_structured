@@ -40,7 +40,7 @@ try:
     app_section_button('Tabular Data Section 🏗️',
     '[Audio Data Section 🎶](https://share.streamlit.io/soft-nougat/dqw-ivves_audio/main/app.py)',
     '[Text Data Section 📚](https://share.streamlit.io/soft-nougat/dqw-ivves_text/main/app.py)',
-    '[Image Data Section 🖼️](https://emojifinder.com/crane)')
+    '[Image Data Section 🖼️](https://share.streamlit.io/soft-nougat/dqw-ivves_images/main/app.py)')
     st.markdown("""---""")
     
     structured_data_app()
