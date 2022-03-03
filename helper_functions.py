@@ -266,8 +266,15 @@ def generate_zip_pp(original, X, X_train, X_test, y, y_train, y_test):
         X.to_csv('pdf_files/preprocessed_data/transformed_file.csv', index=False)
 
     # create a ZipFile object
-    dirName = "pdf_files/preprocessed_data/"
-    zip_files(dirName, 'preprocessed_files_dqw.zip')
+    dirName = "pdf_files/preprocessed_data"
+    with ZipFile('pdf_files/preprocessed_data.zip', 'w') as zipObj:
+        # Iterate over all the files in directory
+        for folderName, subfolders, filenames in os.walk(dirName):
+            for filename in filenames:
+                #create complete filepath of file in directory
+                filePath = os.path.join(folderName, filename)
+                # Add file to zip
+                zipObj.write(filePath, basename(filePath))
 
 def sub_text(text):
     '''
