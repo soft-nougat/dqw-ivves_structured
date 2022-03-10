@@ -14,6 +14,19 @@ import os
 from os.path import basename
 import webbrowser
 
+import shutil
+
+def remove_folder_contents(path):
+
+    shutil.rmtree(path)
+
+def _get_session():
+    from streamlit.report_thread import get_report_ctx
+    import streamlit.report_thread as ReportThread
+    from streamlit.server.server import Server
+    session_id = get_report_ctx().session_id
+    return session_id
+
 def app_section_button(option1, option2, option3, option4):
 
     col1, col2, col3, col4 = st.columns(4)
@@ -231,43 +244,43 @@ def zip_files(dirName, ext):
                 # Add file to zip
                 zipObj.write(filePath, basename(filePath))
 
-def generate_zip_structured(original, comparison):
+def generate_zip_structured(temp_folder, original, comparison):
     """ A function to write files to disk and zip 'em """
-    original.to_csv('pdf_files/synthetic_data/reference_file_dqw.csv', 
+    original.to_csv(temp_folder+'/synthetic_data/reference_file_dqw.csv', 
                index=False)
-    comparison.to_csv('pdf_files/synthetic_data/comparison_file_dqw.csv', 
+    comparison.to_csv(temp_folder+'/synthetic_data/comparison_file_dqw.csv', 
                index=False)
     # create a ZipFile object
-    zipObj = ZipFile('pdf_files/synthetic_data/report_files_dqw.zip', 'w')
+    zipObj = ZipFile(temp_folder+'/synthetic_data/report_files_dqw.zip', 'w')
     # Add multiple files to the zip
-    zipObj.write('pdf_files/synthetic_data/reference_file_dqw.csv')
-    zipObj.write('pdf_files/synthetic_data/comparison_file_dqw.csv')
-    zipObj.write('pdf_files/synthetic_data/table-evaluator_comparison_dqw.pdf')
+    zipObj.write(temp_folder+'/synthetic_data/reference_file_dqw.csv')
+    zipObj.write(temp_folder+'/synthetic_data/comparison_file_dqw.csv')
+    zipObj.write(temp_folder+'/synthetic_data/table-evaluator_comparison_dqw.pdf')
     # close the Zip File
     zipObj.close()
 
-def generate_zip_pp(original, X, X_train, X_test, y, y_train, y_test):
+def generate_zip_pp(temp_folder, original, X, X_train, X_test, y, y_train, y_test):
     """ A function to write pycaret files to disk and zip 'em """
 
-    original.to_csv('pdf_files/preprocessed_data/original_file.csv', index=False)
+    original.to_csv(temp_folder+'/preprocessed_data/original_file.csv', index=False)
 
     if y is not None:
         
-        X.to_csv('pdf_files/preprocessed_data/transformed_file.csv', index=False)
-        X_train.to_csv('pdf_files/preprocessed_data/x_train.csv', index=False)
-        X_test.to_csv('pdf_files/preprocessed_data/x_test.csv', index=False)
+        X.to_csv(temp_folder+'/preprocessed_data/transformed_file.csv', index=False)
+        X_train.to_csv(temp_folder+'/preprocessed_data/x_train.csv', index=False)
+        X_test.to_csv(temp_folder+'/preprocessed_data/x_test.csv', index=False)
 
-        y.to_csv('pdf_files/preprocessed_data/labels.csv', index=False)
-        y_train.to_csv('pdf_files/preprocessed_data/y_train.csv', index=False)
-        y_test.to_csv('pdf_files/preprocessed_data/y_test.csv', index=False)
+        y.to_csv(temp_folder+'/preprocessed_data/labels.csv', index=False)
+        y_train.to_csv(temp_folder+'/preprocessed_data/y_train.csv', index=False)
+        y_test.to_csv(temp_folder+'/preprocessed_data/y_test.csv', index=False)
 
     else:
 
-        X.to_csv('pdf_files/preprocessed_data/transformed_file.csv', index=False)
+        X.to_csv(temp_folder+'/preprocessed_data/transformed_file.csv', index=False)
 
     # create a ZipFile object
-    dirName = "pdf_files/preprocessed_data"
-    with ZipFile('pdf_files/preprocessed_data.zip', 'w') as zipObj:
+    dirName = temp_folder+'/preprocessed_data'
+    with ZipFile(temp_folder+'/preprocessed_data.zip', 'w') as zipObj:
         # Iterate over all the files in directory
         for folderName, subfolders, filenames in os.walk(dirName):
             for filename in filenames:

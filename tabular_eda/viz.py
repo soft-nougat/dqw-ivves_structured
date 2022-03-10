@@ -1,3 +1,4 @@
+from tokenize import String
 from dython.nominal import associations
 from typing import Union, List, Optional
 import pandas as pd
@@ -39,7 +40,7 @@ def plot_var_cor(x: Union[pd.DataFrame, np.ndarray], ax=None, return_values: boo
         return corr
 
 
-def plot_correlation_difference(reference: pd.DataFrame, comparison: pd.DataFrame, plot_diff: bool = True, cat_cols: list = None, annot=False):
+def plot_correlation_difference(reference: pd.DataFrame, comparison: pd.DataFrame, temp_folder: String, plot_diff: bool = True, cat_cols: list = None, annot=False):
     """
     Plot the association matrices for the `reference` dataframe, `comparison` dataframe and plot the difference between them. Has support for continuous and Categorical
     (Male, Female) data types. All Object and Category dtypes are considered to be Categorical columns if `dis_cols` is not passed.
@@ -83,10 +84,10 @@ def plot_correlation_difference(reference: pd.DataFrame, comparison: pd.DataFram
 
     st.pyplot()
 
-    export_plots(reference, comparison, diff, annot, cat_cols)
+    export_plots(reference, comparison, temp_folder, diff, annot, cat_cols)
 
 
-def export_plots(reference, comparison, diff, annot, cat_cols):
+def export_plots(reference, comparison, temp_folder, diff, annot, cat_cols):
     """
     Export heatmap plots one by one for the pdf report
     Pass objects from plot_correlation_difference
@@ -99,19 +100,19 @@ def export_plots(reference, comparison, diff, annot, cat_cols):
     reference_corr = associations(reference, nominal_columns=cat_cols, plot=False, theil_u=True,
                              mark_columns=True, annot=annot, cmap=cmap)['corr']
     plt.tight_layout()
-    plt.savefig('pdf_files/synthetic_data/corr_ref.png',orientation='portrait',transparent=True, bbox_inches=None, pad_inches=0)
+    plt.savefig(temp_folder+'/synthetic_data/corr_ref.png',orientation='portrait',transparent=True, bbox_inches=None, pad_inches=0)
 
     comparison_corr = associations(comparison, nominal_columns=cat_cols, plot=False, theil_u=True,
                              mark_columns=True, annot=annot, cmap=cmap)['corr']
     plt.tight_layout()
-    plt.savefig('pdf_files/synthetic_data/corr_comp.png',orientation='portrait',transparent=True, bbox_inches=None, pad_inches=0)
+    plt.savefig(temp_folder+'/synthetic_data/corr_comp.png',orientation='portrait',transparent=True, bbox_inches=None, pad_inches=0)
 
     diff = abs(reference_corr - comparison_corr)
     sns.set(style="white")
     sns.heatmap(diff, cmap=cmap, vmax=.3, square=True, annot=True, center=0,
                 linewidths=.5, cbar_kws={"shrink": .5}, fmt='.2f', cbar = False)
     plt.tight_layout()
-    plt.savefig('pdf_files/synthetic_data/corr_diff.png',orientation='portrait',transparent=True, bbox_inches=None, pad_inches=0) 
+    plt.savefig(temp_folder+'/synthetic_data/corr_diff.png',orientation='portrait',transparent=True, bbox_inches=None, pad_inches=0) 
 
 def plot_correlation_comparison(evaluators: List, annot=False):
     """
@@ -208,7 +209,7 @@ def plot_mean_std_comparison(evaluators: List):
     plt.tight_layout()
     st.pyplot()
 
-def plot_mean_std(reference: pd.DataFrame, comparison: pd.DataFrame, ax=None):
+def plot_mean_std(reference: pd.DataFrame, comparison: pd.DataFrame, temp_folder: String, ax=None):
     """
     Plot the means and standard deviations of each dataset.
     :param reference: DataFrame containing the reference data
@@ -249,7 +250,7 @@ def plot_mean_std(reference: pd.DataFrame, comparison: pd.DataFrame, ax=None):
     ax[1].set_title('SD of reference and comparison data')
     ax[1].set_xlabel('reference data SD (log)')
     ax[1].set_ylabel('comparison data SD (log)')
-    plt.savefig('pdf_files/synthetic_data/mean_std.png',orientation='portrait',transparent=True, bbox_inches=None, pad_inches=0)
+    plt.savefig(temp_folder+'/synthetic_data/mean_std.png',orientation='portrait',transparent=True, bbox_inches=None, pad_inches=0)
     st.pyplot()
     if ax is None:
         st.pyplot()

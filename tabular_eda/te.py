@@ -1,4 +1,5 @@
 import copy
+from tokenize import String
 import warnings
 import pandas as pd
 import numpy as np
@@ -37,7 +38,7 @@ class TableEvaluator:
     Additional evaluations can be done with the different methods of evaluate and the visual evaluation method.
     """
 
-    def __init__(self, reference: pd.DataFrame, comparison: pd.DataFrame, cat_cols=None, unique_thresh=0, metric='pearsonr',
+    def __init__(self, reference: pd.DataFrame, comparison: pd.DataFrame, temp_folder: String, cat_cols=None, unique_thresh=0, metric='pearsonr',
                  verbose=False, n_samples=None,
                  name: str = None, seed=1337):
         """
@@ -58,6 +59,7 @@ class TableEvaluator:
         self.comparison_metric = getattr(stats, metric)
         self.verbose = verbose
         self.random_seed = seed
+        self.temp_folder = temp_folder
 
         # Make sure columns and their order are the same.
         if len(reference.columns) == len(comparison.columns):
@@ -100,7 +102,7 @@ class TableEvaluator:
         """
         Class wrapper function for plotting the mean and std using `viz.plot_mean_std`.
         """
-        plot_mean_std(self.reference, self.comparison)
+        plot_mean_std(self.reference, self.comparison, self.temp_folder)
 
 
     def plot_cumsums(self, nr_cols=4):
@@ -182,7 +184,7 @@ class TableEvaluator:
                       .pipe((sns.barplot, "data"), x=x, y=y, hue=hue, ax=axes[i], saturation=0.8, palette=palette))
                 ax.set_xticklabels(axes[i].get_xticklabels(), rotation='vertical')
         plt.tight_layout(rect=[0, 0.02, 1, 0.98])
-        plt.savefig('pdf_files/synthetic_data/distributions.png',orientation='portrait',transparent=True, bbox_inches=None, pad_inches=0)
+        plt.savefig(self.temp_folder+'/synthetic_data/distributions.png',orientation='portrait',transparent=True, bbox_inches=None, pad_inches=0)
         st.pyplot()
 
     def plot_correlation_difference(self, plot_diff=True, **kwargs):
@@ -191,7 +193,7 @@ class TableEvaluator:
         :param plot_diff: whether to plot the difference
         :param kwargs: kwargs for sns.heatmap
         """
-        plot_correlation_difference(self.reference, self.comparison, cat_cols=self.categorical_columns, plot_diff=plot_diff,
+        plot_correlation_difference(self.reference, self.comparison, self.temp_folder, cat_cols=self.categorical_columns, plot_diff=plot_diff,
                                     **kwargs)
 
     def correlation_distance(self, how: str = 'euclidean') -> float:
@@ -243,7 +245,7 @@ class TableEvaluator:
         ax[0].set_title('reference data')
         ax[1].set_title('comparison data')
 
-        plt.savefig('pdf_files/synthetic_data/pca.png',orientation='portrait',transparent=True, bbox_inches=None, pad_inches=0)
+        plt.savefig(self.temp_folder+'/synthetic_data/pca.png',orientation='portrait',transparent=True, bbox_inches=None, pad_inches=0)
         st.pyplot()
 
     def get_copies(self, return_len: bool = False) -> Union[pd.DataFrame, int]:

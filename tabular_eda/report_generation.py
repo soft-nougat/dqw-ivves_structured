@@ -8,7 +8,7 @@ import pdfkit as pdf
 from fpdf import FPDF
 import io 
 
-def create_pdf(original, comparison):
+def create_pdf(original, comparison, temp_folder):
 
     """
     Use fpdf to create a static report, we use files from pdf_files folder
@@ -32,10 +32,10 @@ def create_pdf(original, comparison):
     #h = 5.93)
     #pdf.text(txt = "Below are the mean and standard deviations of numerical columns in the reference and comparison dataset.",
     #x = 6.03, y = 1.51)
-    pdf.image("pdf_files/synthetic_data/mean_std.png", x = 6.03, y = 2.59, w = 14.61, h = 7.31)
+    pdf.image(temp_folder+"/synthetic_data/mean_std.png", x = 6.03, y = 2.59, w = 14.61, h = 7.31)
     #pdf.text(txt = "Below is the comparison of feature distributions for the reference and comparison dataset.",
     #x = 6.03, y = 10.07)
-    pdf.image("pdf_files/synthetic_data/distributions.png", x = 5.51, y = 12.16, w = 15.17, h = 17.06)
+    pdf.image(temp_folder+"/synthetic_data/distributions.png", x = 5.51, y = 12.16, w = 15.17, h = 17.06)
 
     pdf.add_page()
     pdf.image("pdf_files/synthetic_data/2_file_structured_bg_page2.png", x = 0, y = 0, w = 21, h = 29.7)
@@ -43,21 +43,21 @@ def create_pdf(original, comparison):
     #x = 6.03, y = 0.76)
     #pdf.text(txt = "Reference dataset correlation heatmap",
     #x = 7.77, y = 1.88)
-    pdf.image("pdf_files/synthetic_data/corr_ref.png", x = 5.43, y = 2.65, w = 11.74, h = 8.81)
+    pdf.image(temp_folder+"/synthetic_data/corr_ref.png", x = 5.43, y = 2.65, w = 11.74, h = 8.81)
     #pdf.text(txt = "Comparison dataset correlation heatmap",
     #x = 7.77, y = 11.2)
-    pdf.image("pdf_files/synthetic_data/corr_comp.png", x = 5.83, y = 11.84, w = 11.35, h = 8.51)
+    pdf.image(temp_folder+"/synthetic_data/corr_comp.png", x = 5.83, y = 11.84, w = 11.35, h = 8.51)
     #pdf.text(txt = "Differences",
     #x = 7.77, y = 19.93)
-    pdf.image("pdf_files/synthetic_data/corr_diff.png", x = 6.42, y = 20.7, w = 11.35, h = 8.51)
+    pdf.image(temp_folder+"/synthetic_data/corr_diff.png", x = 6.42, y = 20.7, w = 11.35, h = 8.51)
 
     pdf.add_page()
     pdf.image("pdf_files/synthetic_data/2_file_structured_bg_page3.png", x = 0, y = 0, w = 21, h = 29.7)
     #pdf.text(txt = "Below is the PCA result for reference and comparison dataset.",
     #x = 6.03, y = 0.76)
-    pdf.image("pdf_files/synthetic_data/pca.png", x = 4.46, y = 2.46, w = 17.71, h = 8.86)
+    pdf.image(temp_folder+"/synthetic_data/pca.png", x = 4.46, y = 2.46, w = 17.71, h = 8.86)
 
-    pdf.output("pdf_files/synthetic_data/table-evaluator_comparison_dqw.pdf")
+    pdf.output(temp_folder+"/synthetic_data/table-evaluator_comparison_dqw.pdf")
 
 def create_pdf_html(html, header_text, file_name):
 

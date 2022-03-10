@@ -9,15 +9,29 @@ import streamlit.components.v1 as components
 import pandas_profiling
 from streamlit_pandas_profiling import st_profile_report
 from tabular_eda.te import *
-from helper_functions import display_app_header, generate_zip_structured, sub_text, generate_zip_pp, open_html
+from helper_functions import display_app_header, generate_zip_structured, sub_text, generate_zip_pp, open_html, _get_session, remove_folder_contents
 from tabular_eda.report_generation import create_pdf_html, create_pdf
 import sweetviz as sv
 import pycaret as pyc
+
+import os
+from os import path
+import tempfile
 
 from sklearn import set_config
 from sklearn.utils import estimator_html_repr
 
 def structured_data_app():
+
+    # get session id and create session specific folders
+    id = _get_session()
+
+    temp_folder = 'Temp_'+ id
+
+    if path.exists(temp_folder) == False:
+        os.makedirs(temp_folder)
+        os.makedirs(temp_folder+'/preprocessed_data')
+        os.makedirs(temp_folder+'/synthetic_data')
 
     # the very necessary reference expander
     intro_text = """
@@ -69,11 +83,11 @@ def structured_data_app():
 
             if step_3 == "EDA":
 
-                analyse_file(st.session_state.data)
+                analyse_file(temp_folder, st.session_state.data)
 
             elif step_3 == "Preprocess and compare":
 
-                st.session_state.data = preprocess(st.session_state.data)
+                st.session_state.data = preprocess(temp_folder, st.session_state.data)
 
             else:
 
@@ -81,11 +95,13 @@ def structured_data_app():
            
     if selected_structure == "Compare 2 files":
         
-        sweetviz_comparison(None, None, 0, text = "Step 3")
+        sweetviz_comparison(temp_folder, None, None, 0, text = "Step 3")
     
     if selected_structure == "Synthetic data comparison":
         
-        table_evaluator_comparison()
+        table_evaluator_comparison(temp_folder)
+
+    remove_folder_contents(temp_folder)
 
 def upload_file():
 
@@ -152,7 +168,7 @@ def upload_2_files():
 
         return(original, comparison, 1)
 
-def sweetviz_comparison(original, comparison, indicator, text, upload = True):
+def sweetviz_comparison(temp_folder, original, comparison, indicator, text, upload = True):
 
     """
     Function to compare test and train data with sweetviz
@@ -166,22 +182,22 @@ def sweetviz_comparison(original, comparison, indicator, text, upload = True):
 
         sw = sv.compare([original, "Original"], [comparison, "Comparison"])
 
-        sw.show_html(open_browser=False, layout='vertical', scale=1.0)
+        sw.show_html(temp_folder+"/SWEETVIZ_REPORT.html", open_browser=False, layout='vertical', scale=1.0)
 
-        display = open("SWEETVIZ_REPORT.html", 'r', encoding='utf-8')
+        display = open(temp_folder+"/SWEETVIZ_REPORT.html", 'r', encoding='utf-8')
 
         source_code = display.read()
 
         components.html(source_code, height=1200, scrolling=True)
 
-        create_pdf_html("SWEETVIZ_REPORT.html",
+        create_pdf_html(temp_folder+"/SWEETVIZ_REPORT.html",
                         text,
                         "sweetviz_dqw.pdf")
 
         return(sw)
 
 
-def table_evaluator_comparison():
+def table_evaluator_comparison(temp_folder):
 
     """
     The portion of structured data app dedicated to file comparison with table-evaluator
@@ -203,7 +219,7 @@ def table_evaluator_comparison():
 
         if selected_method == "Plot the differences":
 
-            table_evaluator = TableEvaluator(original, comparison)
+            table_evaluator = TableEvaluator(original, comparison, temp_folder)
             table_evaluator.visual_evaluation()
 
             # Side panel setup
@@ -212,12 +228,12 @@ def table_evaluator_comparison():
                             is_sidebar=True)
 
             with st.spinner("The pdf is being generated..."):
-                create_pdf(original, comparison)
+                create_pdf(original, comparison, temp_folder)
             st.success('Done! Please refer to sidebar, Step 4 for download.')
 
-            zip = generate_zip_structured(original, comparison)
+            zip = generate_zip_structured(temp_folder, original, comparison)
 
-            with open("pdf_files/synthetic_data/report_files_dqw.zip", "rb") as fp:
+            with open(temp_folder+"/synthetic_data/report_files_dqw.zip", "rb") as fp:
                 st.sidebar.download_button(
                         "⬇️",
                     data=fp,
@@ -239,7 +255,7 @@ def table_evaluator_comparison():
         
             if evaluate_col != 'None':
 
-                table_evaluator = TableEvaluator(original, comparison)
+                table_evaluator = TableEvaluator(original, comparison, temp_folder)
                 evaluate = table_evaluator.evaluate(target_col = evaluate_col)
 
             else:
@@ -247,7 +263,7 @@ def table_evaluator_comparison():
                 st.sidebar.warning('Please select a categorical column to analyse.')
 
         
-def analyse_file(data):
+def analyse_file(temp_folder, data):
 
     """
     The portion of structured data app dedicated to 1 file analysis with pandas-profiling
@@ -256,15 +272,15 @@ def analyse_file(data):
     # generate a report and save it 
     pr = data.profile_report()
     st_profile_report(pr)
-    pr.to_file("pandas_prof.html")
+    pr.to_file(temp_folder+"/pandas_prof.html")
     
-    create_pdf_html("pandas_prof.html",
+    create_pdf_html(temp_folder+"/pandas_prof.html",
                     "Step 4",
                     "pandas_profiling_dqw.pdf")
 
     return(pr)
 
-def preprocess(data):
+def preprocess(temp_folder, data):
     """
     Automated preprocessing of the structured dataset w/ pycaret
     """
@@ -318,17 +334,17 @@ def preprocess(data):
                           )
 
         # save pipeline
-        save_config("pdf_files/preprocessed_data/pycaret_pipeline.pkl")
+        save_config(temp_folder+"/preprocessed_data/pycaret_pipeline.pkl")
 
         # save html of the sklearn data pipeline
         set_config(display = 'diagram')
 
         pipeline = get_config('prep_pipe')
 
-        with open('prep_pipe.html', 'w') as f:  
+        with open(temp_folder+'/prep_pipe.html', 'w') as f:  
             f.write(estimator_html_repr(pipeline))
 
-        show_pp_file(data, get_config('X'))
+        show_pp_file(temp_folder, data, get_config('X'))
 
     # superivised
     elif model != 'Unsupervised':
@@ -361,25 +377,25 @@ def preprocess(data):
                           )
 
             # save pipeline
-            save_config("pdf_files/preprocessed_data/pycaret_pipeline.pkl")
+            save_config(temp_folder+"/preprocessed_data/pycaret_pipeline.pkl")
 
             # save html of the sklearn data pipeline
             set_config(display = 'diagram')
 
             pipeline = get_config('prep_pipe')
 
-            with open('prep_pipe.html', 'w') as f:  
+            with open(temp_folder+'/prep_pipe.html', 'w') as f:  
                 f.write(estimator_html_repr(pipeline))
 
-            show_pp_file(data, get_config('X'), get_config('X_train'), get_config('X_test'),
+            show_pp_file(temp_folder, data, get_config('X'), get_config('X_train'), get_config('X_test'),
             get_config('y'), get_config('y_train'), get_config('y_test'))
  
-def show_pp_file(data, X, X_train = None, X_test = None, y = None, y_train = None, y_test = None):
+def show_pp_file(temp_folder, data, X, X_train = None, X_test = None, y = None, y_train = None, y_test = None):
     
     st.subheader("Preprocessing done! 🧼")
     st.write("A preview of data and the preprocessing pipeline is below.")
     st.write(X.head())
-    open_html('prep_pipe.html', height = 400, width = 300)
+    open_html(temp_folder+'/prep_pipe.html', height = 400, width = 300)
 
     st.subheader("Compare files 👀")
 
@@ -389,24 +405,24 @@ def show_pp_file(data, X, X_train = None, X_test = None, y = None, y_train = Non
 
         if compare_type == 'Original & preprocessed':
 
-            sweetviz_comparison(data, X, 1, text = "Step 4", upload = False)
+            sweetviz_comparison(temp_folder, data, X, 1, text = "Step 4", upload = False)
         
         else:
 
-            sweetviz_comparison(X_train, X_test, 1, text = "Step 4", upload = False)
+            sweetviz_comparison(temp_folder, X_train, X_test, 1, text = "Step 4", upload = False)
     else:
 
         st.write("Compare original and preprocessed data")
-        sweetviz_comparison(data, X, 1, text = "Step 4", upload = False)
+        sweetviz_comparison(temp_folder, data, X, 1, text = "Step 4", upload = False)
 
     # download files
-    zip = generate_zip_pp(data, X, X_train, X_test, y, y_train, y_test)
+    zip = generate_zip_pp(temp_folder, data, X, X_train, X_test, y, y_train, y_test)
 
     display_app_header(main_txt = "Step 5",
                     sub_txt= "Download preprocessed files",
                     is_sidebar=True)
 
-    with open("pdf_files/preprocessed_data.zip", "rb") as fp:
+    with open(temp_folder+"/preprocessed_data.zip", "rb") as fp:
         st.sidebar.download_button(
                 "⬇️",
             data=fp,
@@ -416,7 +432,7 @@ def show_pp_file(data, X, X_train = None, X_test = None, y = None, y_train = Non
 
 def methods_pyc(columns, model):
     """
-    Define whwich imputation method to run on missing values
+    Define which imputation method to run on missing values
     Define which features to ignore
     Define miscellaneous methods
     """
