@@ -15,9 +15,8 @@ from tabular_eda.structured_data import *
 # app setup 
 try:
 
-    # create ss object
-    if 'data' not in st.session_state:
-        st.session_state.data = None
+    session_state_init()
+    temp_folder = create_temp_folder()
 
     # app design
     app_meta('🏗️')
@@ -44,12 +43,20 @@ try:
     st.markdown("""---""")
     
     structured_data_app()
+    remove_folder_contents(temp_folder)
 
 except KeyError:
-    st.error("Please select a key value from the dropdown to continue.")
+    st.error("🎢 Please select a key value from the dropdown to continue.")
+    remove_folder_contents(temp_folder)
     
 except ValueError:
-    st.error("Oops, something went wrong. Please check previous steps for inconsistent input.")
+    st.error("💢 Oops, something went wrong. Please clear cache and refresh the app.")
+    remove_folder_contents(temp_folder)
     
 except TypeError:
-    st.error("Oops, something went wrong. Please check previous steps for inconsistent input.")
+    st.error("💢 Oops, something went wrong. Please clear cache and refresh the app.")
+    remove_folder_contents(temp_folder)
+
+except RuntimeError:
+    st.error("💢 Oops, something went wrong. Please clear cache and refresh the app.")
+    remove_folder_contents(temp_folder)
