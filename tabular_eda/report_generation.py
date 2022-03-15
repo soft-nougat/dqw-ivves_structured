@@ -59,6 +59,7 @@ def create_pdf(original, comparison, temp_folder):
 
     pdf.output(temp_folder+"/synthetic_data/table-evaluator_comparison_dqw.pdf")
 
+@st.cache(allow_output_mutation=True)
 def create_pdf_html(html, header_text, file_name):
 
     """
@@ -72,13 +73,4 @@ def create_pdf_html(html, header_text, file_name):
     # create a pdf file
     pdf_report = pdf.from_file(html)
 
-    # option to download in app
-    display_app_header(main_txt = header_text,
-                        sub_txt= "Download report",
-                        is_sidebar=True)
-
-    st.sidebar.download_button(
-            "⬇️",
-        data=pdf_report,
-        file_name=file_name
-    )
+    return(pdf_report)

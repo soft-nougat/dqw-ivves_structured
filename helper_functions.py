@@ -79,6 +79,10 @@ def _get_session():
 
     return ctx.session_id
 
+def remove_folder_contents(path):
+
+    shutil.rmtree(path)
+
 def app_section_button(option1, option2, option3, option4):
 
     col1, col2, col3, col4 = st.columns(4)

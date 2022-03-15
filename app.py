@@ -42,7 +42,7 @@ try:
     '[Image Data Section 🖼️](https://share.streamlit.io/soft-nougat/dqw-ivves_images/main/app.py)')
     st.markdown("""---""")
     
-    structured_data_app()
+    structured_data_app(temp_folder)
     remove_folder_contents(temp_folder)
 
 except KeyError:
