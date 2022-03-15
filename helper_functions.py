@@ -16,16 +16,68 @@ import webbrowser
 
 import shutil
 
-def remove_folder_contents(path):
+def session_state_init():
 
-    shutil.rmtree(path)
+    """
+    Initialize session state!
+    """
+
+    # create ss object
+    if 'data' not in st.session_state:
+        st.session_state.data = None
+    if 'pr' not in st.session_state:
+        st.session_state.pr = None
+    if 'pdf_report' not in st.session_state:
+        st.session_state.pdf_report = None
+    if 'sw' not in st.session_state:
+        st.session_state.sw = None
+    if 'pipeline' not in st.session_state:
+        st.session_state.pipeline = None  
+    if 'transformed_data' not in st.session_state:
+        st.session_state.transformed_data = None 
+    if 'download' not in st.session_state:
+        st.session_state.download = None
+
+def create_temp_folder():
+    """
+    Create a temporary folder per unique user session
+    The folder will be deleted at the end of a successful or unsuccessful run of app
+    """
+
+    # get session id and create session specific folders
+    id = _get_session()
+    # now create a user specific folder
+    temp_folder = 'DQW_Temp_'+ id
+    
+    if os.path.exists(temp_folder) == False:
+        os.makedirs(temp_folder)
+        os.makedirs(temp_folder+'/preprocessed_data')
+        os.makedirs(temp_folder+'/synthetic_data')
+
+    return(temp_folder)
 
 def _get_session():
-    from streamlit.report_thread import get_report_ctx
-    import streamlit.report_thread as ReportThread
-    from streamlit.server.server import Server
-    session_id = get_report_ctx().session_id
-    return session_id
+
+    """
+    Get unique user session ID
+    """
+    
+    try:
+        from streamlit.script_run_context import get_script_run_ctx
+    except ModuleNotFoundError:
+        # streamlit < 1.4
+        from streamlit.report_thread import (  # type: ignore
+            get_report_ctx as get_script_run_ctx,
+        )
+          
+    from streamlit.server.server import Server        
+    # Ref: https://gist.github.com/tvst/036da038ab3e999a64497f42de966a92
+   
+    ctx = get_script_run_ctx()
+    if ctx is None:
+        raise Exception("Failed to get the thread context")
+
+    return ctx.session_id
 
 def app_section_button(option1, option2, option3, option4):
 
