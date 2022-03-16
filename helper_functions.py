@@ -21,7 +21,6 @@ def session_state_init():
     """
     Initialize session state!
     """
-
     # create ss object
     if 'data' not in st.session_state:
         st.session_state.data = None
@@ -33,10 +32,8 @@ def session_state_init():
         st.session_state.sw = None
     if 'pipeline' not in st.session_state:
         st.session_state.pipeline = None  
-    if 'transformed_data' not in st.session_state:
-        st.session_state.transformed_data = None 
     if 'download' not in st.session_state:
-        st.session_state.download = None
+        st.session_state.download = 'Not yet'
 
 def create_temp_folder():
     """

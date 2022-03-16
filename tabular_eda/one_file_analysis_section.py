@@ -25,8 +25,6 @@ def one_file_section(step_3, temp_folder, data):
 
         st.session_state.pr = analyse_file(temp_folder, st.session_state.data)
 
-        st_profile_report(st.session_state.pr)
-
         st.session_state.pdf_report = create_pdf_html(temp_folder+"/pandas_prof.html",
                                     "Step 4",
                                     "pandas_profiling_dqw.pdf")
@@ -47,22 +45,21 @@ def one_file_section(step_3, temp_folder, data):
         pyc_info()
 
         st.write(st.session_state.download)
-        st.write(st.session_state.transformed_data)
 
         dataset_columns = data.columns
         options_columns = dataset_columns.insert(0, 'None')
         
         # control flow - catch if the download has been triggered
-        if st.session_state.download is not None:
+        if st.session_state.download == 'Sure!':
            
             # allow the user to clear cache just for the dl button
             form = st.form("checkboxes", clear_on_submit = True)
             with form:
-                st.checkbox('I want to preprocess my file again.')
+                st.checkbox("I want to preprocess my file again.")
                     
-            submit = form.form_submit_button("Go! 🏃")
+            submit = form.form_submit_button("Go! Go! Go! 🏃")
             if submit:
-                st.session_state.download = None
+                st.session_state.download = 'Not yet'
                 model = None
                 label_col = None
 
@@ -79,12 +76,16 @@ def one_file_section(step_3, temp_folder, data):
                 label_col = None
 
             # run this part only if the download button is clear
-            if st.session_state.download == None:
+            if st.session_state.download == 'Not yet':
                     
                     preprocess(temp_folder, st.session_state.data, model, 
                     label_col, options_columns)
 
-                    download_zip(temp_folder) 
+                    st.session_state.download = st.sidebar.selectbox('',
+                    ('Not yet', 'Sure!'))
+
+                    if st.session_state.download == 'Sure!':
+                        download_zip(temp_folder) 
         
     else:
 
@@ -93,15 +94,14 @@ def one_file_section(step_3, temp_folder, data):
 def download_zip(temp_folder):
 
     with open(temp_folder+"/preprocessed_data.zip", "rb") as fp:
-        st.session_state.download = st.sidebar.download_button(
+        st.sidebar.download_button(
                 "⬇️",
             data=fp,
             file_name="preprocessed_data_dqw.zip",
             mime="application/zip"
         )
 
-        
-@st.cache(allow_output_mutation=True)
+@st.cache(allow_output_mutation=True, show_spinner=False)
 def analyse_file(temp_folder, data):
 
     """
