@@ -12,4 +12,4 @@ fpdf
 pdfkit
 pycaret
 sweetviz
-protoc==3.19.0
+protobuf~=3.19.0
